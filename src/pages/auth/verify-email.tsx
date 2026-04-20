@@ -1,23 +1,50 @@
-import { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { redirect, useNavigate, useSearchParams } from "react-router-dom";
 import { verifyEmail } from "../../features/auth/api";
+import { toast } from "sonner";
 
 export default function VerifyEmailPage() {
-  //   const { token } = useSearchParams();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
 
-  console.log(searchParams.get("callbackURL"))
+  const token = searchParams.get("token");
+  const callbackURL = searchParams.get("callbackURL") || "/";
+
+  const [status, setStatus] = useState<"loading" | "success" | "error">(
+    "loading"
+  );
 
   useEffect(() => {
-    const verify = async (token: string | null) => {
-      if (!token) {
-        throw new Error("the token is not found");
-      }
-      await verifyEmail(token);
-    };
-    verify(token);
-  }, [token]);
+    if (!token) {
+      setStatus("error");
+      return;
+    }
 
-  return <div>Email is being verified</div>;
+    const run = async () => {
+      try {
+        await verifyEmail(token);
+        setStatus("success");
+
+        setTimeout(() => {
+          navigate(callbackURL, { replace: true });
+        }, 1000);
+        
+      } catch (err) {
+        toast.error(err, {position: "top-right"})
+        setStatus("error");
+      }
+    };
+
+    run();
+  }, [token, callbackURL, navigate]);
+
+  return (
+    <div className="flex items-center justify-center h-screen">
+      {status === "loading" && <p>Verifying your email...</p>}
+      {status === "success" && <p>Email verified. Redirecting...</p>}
+      {status === "error" && (
+        <p className="text-red-500">Invalid or expired verification link.</p>
+      )}
+    </div>
+  );
 }

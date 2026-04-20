@@ -5,6 +5,7 @@ import RegistrationPage from "../pages/auth/register";
 import AuthLayout from "../pages/auth/layout";
 import DashboardPage from "../pages/dashboard";
 import VerifyEmailPage from "../pages/auth/verify-email";
+import ConfirmationPage from "../pages/auth/confirmation";
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +23,10 @@ export const router = createBrowserRouter([
       {
         path: "register",
         element: <RegistrationPage />,
+      },
+      {
+        path: "confirmation",
+        element: <ConfirmationPage />,
       },
     ],
   },

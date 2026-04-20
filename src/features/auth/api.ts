@@ -2,23 +2,18 @@ import { authClient } from "../../lib/auth-client";
 import type { NewUserInput } from "./auth.schema";
 
 export const registerUser = async (payload: NewUserInput) => {
-  const { data, error } = await authClient.signUp.email({
+  return await authClient.signUp.email({
     ...payload,
-    callbackURL: "http://localhost:5173/dashboard",
+    callbackURL: "/dashboard",
   });
-
-  console.log(data);
-  console.log(error);
 };
 
 export const verifyEmail = async (token: string) => {
-  const resp = await authClient.verifyEmail({
+  return await authClient.verifyEmail({
     query: {
       token,
     },
   });
-
-  console.log(resp)
 };
 
 // type LoginFormData = {
