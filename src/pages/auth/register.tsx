@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,40 +9,142 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NewUser, type NewUserInput } from "@/features/auth/auth.schema";
 import { Link } from "react-router-dom";
+import * as z from "zod";
+import { registerUser } from "../../features/auth/api";
 
 export default function RegistrationPage() {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<NewUserInput>({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<keyof NewUserInput, string>>
+  >({});
+
+  const handleChange = (field: keyof NewUserInput, value: string) => {
+    setFieldErrors((prev) => ({
+      ...prev,
+      [field]: undefined,
+    }));
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoading(true);
+
+    const validationResult = NewUser.safeParse(formData);
+
+    if (!validationResult.success) {
+      const zodFieldErrors = z.treeifyError(validationResult.error)
+      setFieldErrors({
+        name: zodFieldErrors.properties?.name?.errors?.at(0),
+        email: zodFieldErrors.properties?.email?.errors?.at(0),
+        password: zodFieldErrors.properties?.password?.errors?.at(0),
+        confirmPassword: zodFieldErrors.properties?.confirmPassword?.errors?.at(0),
+      });
+    } else {
+      await registerUser(validationResult.data)
+      
+      setFieldErrors({});
+      console.log("Registration payload ready", validationResult.data);
+    }
+
+    setLoading(false);
+  };
+
   return (
     <Card className="w-full max-w-80 shadow">
       <CardHeader>
         <CardTitle>Create an account</CardTitle>
       </CardHeader>
       <CardContent>
-        <form>
+        <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-4">
             <div className="grid gap-2">
               <Label htmlFor="name">Name</Label>
-              <Input id="name" type="text" placeholder="John Doe" required />
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                placeholder="John Doe"
+                value={formData.name}
+                onChange={(event) => handleChange("name", event.target.value)}
+                aria-invalid={Boolean(fieldErrors.name)}
+                required
+              />
+              {fieldErrors.name && (
+                <p className="text-[11px] text-destructive text-left">
+                  {fieldErrors.name}
+                </p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="m@example.com"
+                value={formData.email}
+                onChange={(event) => handleChange("email", event.target.value)}
+                aria-invalid={Boolean(fieldErrors.email)}
                 required
               />
+              {fieldErrors.email && (
+                <p className="text-[11px] text-destructive text-left">
+                  {fieldErrors.email}
+                </p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required />
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={(event) =>
+                  handleChange("password", event.target.value)
+                }
+                aria-invalid={Boolean(fieldErrors.password)}
+                required
+              />
+              {fieldErrors.password && (
+                <p className="text-[11px] text-destructive text-left">
+                  {fieldErrors.password}
+                </p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="confirm-password">Confirm Password</Label>
-              <Input id="confirm-password" type="password" required />
+              <Input
+                id="confirm-password"
+                name="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={(event) =>
+                  handleChange("confirmPassword", event.target.value)
+                }
+                aria-invalid={Boolean(fieldErrors.confirmPassword)}
+                required
+              />
+              {fieldErrors.confirmPassword && (
+                <p className="text-[11px] text-destructive text-left">
+                  {fieldErrors.confirmPassword}
+                </p>
+              )}
             </div>
-            <Button type="submit" className="w-full">
-              Create account
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Loading..." : "Create account"}
             </Button>
             <Button type="button" variant="outline" className="w-full">
               Continue with Google
