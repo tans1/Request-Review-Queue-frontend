@@ -16,6 +16,11 @@ export const verifyEmail = async (token: string) => {
   });
 };
 
+
+
+// export const fetchUser = async () => {
+//   return await authClient.useSession()
+// }
 // type LoginFormData = {
 //   email: string;
 //   password: string;
