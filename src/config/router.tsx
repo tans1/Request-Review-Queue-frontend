@@ -7,6 +7,7 @@ import DashboardPage from "../pages/dashboard";
 import VerifyEmailPage from "../pages/auth/verify-email";
 import ConfirmationPage from "../pages/auth/confirmation";
 import ProtectedRoute from "../pages/protected";
+import RequestDetailsPage from "../pages/details";
 
 export const router = createBrowserRouter([
   {
@@ -36,6 +37,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <DashboardPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/details",
+    element: (
+      <ProtectedRoute>
+        <RequestDetailsPage />
       </ProtectedRoute>
     ),
   },
