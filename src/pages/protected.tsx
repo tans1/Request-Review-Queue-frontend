@@ -8,8 +8,6 @@ type Props = {
 export default function ProtectedRoute({ children }: Props) {
   const { data, isPending, error } = authClient.useSession();
 
-  console.log({ data, isPending, error });
-
   if (isPending) {
     return <div>Loading...</div>;
   }

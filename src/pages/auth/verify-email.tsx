@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { redirect, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { verifyEmail } from "../../features/auth/api";
 import { toast } from "sonner";
 
