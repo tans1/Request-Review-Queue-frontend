@@ -12,17 +12,37 @@ import {
 import NewRequest from "../components/forms/new-request";
 import { useQuery } from "@tanstack/react-query";
 import { getRequests } from "../features/requests/api";
+import { useState } from "react";
 
 export default function DashboardPage() {
-  const handleFilterChange = (filters: RequestFilters) => {
-    console.log(filters);
-  };
+  const [filters, setFilters] = useState<RequestFilters>({
+    status: "",
+    priority: "",
+    dueDate: "",
+    owner: "",
+    search: "",
+  });
 
-  const query = useQuery({ queryKey: ["requests"], queryFn: getRequests });
+  const query = useQuery({
+    queryKey: ["requests", filters],
+    queryFn: () => getRequests(filters),
+  });
+
+  const handleFilterChange = (newFilters: RequestFilters) => {
+    setFilters(newFilters);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navbar />
+      <Navbar
+        searchValue={filters.search}
+        handleSearchValueChange={(value) => {
+          setFilters((current) => ({
+            ...current,
+            search: value,
+          }));
+        }}
+      />
       <div className="w-full flex flex-row-reverse mt-5">
         <NewRequest />
       </div>

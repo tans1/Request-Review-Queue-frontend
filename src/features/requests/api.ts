@@ -1,4 +1,6 @@
+import type { RequestFilters } from "../../components/filters";
 import { axiosClient } from "../../lib/_api";
+import type { RequestType } from "./type";
 
 export async function getOwners() {
   try {
@@ -31,12 +33,22 @@ export async function createRequest(payload: Payload) {
   }
 }
 
-export async function getRequests() {
+export async function getRequests(
+  filters: RequestFilters,
+): Promise<{ success: boolean; data: RequestType[]; err: unknown }> {
   try {
-    const resp = await axiosClient.get("/api/requests");
+    const resp = await axiosClient.get("/api/requests", {
+      params: {
+        ...(filters.status && { status: filters.status }),
+        ...(filters.priority && { priority: filters.priority }),
+        ...(filters.dueDate && { dueDate: filters.dueDate }),
+        ...(filters.owner && { ownerId: filters.owner }),
+        ...(filters.search && { search: filters.search }),
+      },
+    });
     return { success: true, data: resp.data, err: null };
   } catch (err) {
-    return { success: false, data: null, err: err };
+    return { success: false, data: [], err: err };
   }
 }
 

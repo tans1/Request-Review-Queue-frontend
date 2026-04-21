@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getOwners } from "../features/requests/api";
 
 export type RequestFilters = {
   status: string;
   priority: string;
-  submittedDate: string;
+  dueDate: string;
   owner: string;
+  search: string;
 };
 
 type FiltersProps = {
@@ -21,11 +24,12 @@ type FiltersProps = {
 const INITIAL_FILTERS: RequestFilters = {
   status: "",
   priority: "",
-  submittedDate: "",
+  dueDate: "",
   owner: "",
+  search: "",
 };
 
-type FilterKey = "status" | "priority" | "submittedDate" | "owner";
+type FilterKey = "status" | "priority" | "dueDate" | "owner";
 
 function formatDate(date: Date) {
   const year = date.getFullYear();
@@ -40,6 +44,7 @@ export default function Filters({ onFiltersChange }: FiltersProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const datePickerRef = useRef<HTMLDivElement>(null);
+  const query = useQuery({ queryKey: ["owners"], queryFn: getOwners });
 
   const updateFilters = (nextFilters: RequestFilters) => {
     setFilters(nextFilters);
@@ -61,7 +66,7 @@ export default function Filters({ onFiltersChange }: FiltersProps) {
 
     updateFilters({
       ...filters,
-      submittedDate: date ? formatDate(date) : "",
+      dueDate: date ? formatDate(date) : "",
     });
 
     setIsCalendarOpen(false);
@@ -102,18 +107,20 @@ export default function Filters({ onFiltersChange }: FiltersProps) {
         onChange={(event) => handleFilterChange("priority", event.target.value)}
         className="w-36 rounded-lg bg-white shadow-sm ">
         <NativeSelectOption value="">All priority</NativeSelectOption>
-        <NativeSelectOption value="HIGH_PRIORITY">High</NativeSelectOption>
-        <NativeSelectOption value="MEDIUM_PRIORITY">Medium</NativeSelectOption>
-        <NativeSelectOption value="LOW_PRIORITY">Low</NativeSelectOption>
+        <NativeSelectOption value="HIGH">High</NativeSelectOption>
+        <NativeSelectOption value="MEDIUM">Medium</NativeSelectOption>
+        <NativeSelectOption value="LOW">Low</NativeSelectOption>
       </NativeSelect>
 
       <NativeSelect
-        value={filters.priority}
+        value={filters.owner}
         onChange={(event) => handleFilterChange("owner", event.target.value)}
         className="w-36 rounded-lg bg-white shadow-sm ">
         <NativeSelectOption value="">All owners</NativeSelectOption>
-        {[].map((owner) => (
-          <NativeSelectOption value={owner}>{owner}</NativeSelectOption>
+        {query.data?.data.map((owner) => (
+          <NativeSelectOption key={owner?.id} value={owner?.id}>
+            {owner?.name}
+          </NativeSelectOption>
         ))}
       </NativeSelect>
 
@@ -124,7 +131,7 @@ export default function Filters({ onFiltersChange }: FiltersProps) {
           className="w-36 justify-start bg-white font-normal shadow-sm"
           onClick={() => setIsCalendarOpen(!isCalendarOpen)}>
           <CalendarIcon className="size-4" />
-          {filters.submittedDate || "Due date"}
+          {filters.dueDate || "Due date"}
         </Button>
 
         {isCalendarOpen && (
