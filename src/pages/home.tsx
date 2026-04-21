@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 
 export default function HomePage() {
+  
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6">
@@ -63,7 +64,7 @@ export default function HomePage() {
                 <div className="mb-5 flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-slate-900">
-                      Review Dashboard
+                      <Link to={"/dashboard"} className="hover:underline" >Review Dashboard</Link>
                     </h3>
                   </div>
                 </div>

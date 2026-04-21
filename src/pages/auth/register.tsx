@@ -61,7 +61,7 @@ export default function RegistrationPage() {
           navigate("/auth/confirmation");
         }
       } catch (er) {
-        toast.error(er.message, { position: "top-right" });
+        toast.error( er instanceof Error ? er.message : "Error occured", { position: "top-right" });
       }
 
       setFieldErrors({});

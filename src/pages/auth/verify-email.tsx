@@ -30,7 +30,7 @@ export default function VerifyEmailPage() {
         }, 1000);
         
       } catch (err) {
-        toast.error(err, {position: "top-right"})
+        toast.error(err instanceof Error ? err.message : "Error occured", {position: "top-right"})
         setStatus("error");
       }
     };

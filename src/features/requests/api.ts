@@ -1,3 +1,4 @@
+import axios from "axios";
 import type { RequestFilters } from "../../components/filters";
 import { axiosClient } from "../../lib/_api";
 import type { RequestType } from "./type";
@@ -19,6 +20,7 @@ type Payload = {
   priority?: string;
   ownerId?: string;
   note?: string;
+  rejectionReason?: "";
 };
 
 export async function createRequest(payload: Payload) {
@@ -30,7 +32,14 @@ export async function createRequest(payload: Payload) {
     return { success: true, data: resp.data, err: null };
   } catch (err) {
     console.log("the error is", err);
-    return { success: false, data: null, err: err };
+    // return { success: false, data: null, err: err };
+    if (axios.isAxiosError(err)) {
+      throw new Error(
+        err.response?.data?.message ?? "Failed to create a request"
+      );
+    }
+
+    throw new Error("Failed to create a request");
   }
 }
 
@@ -47,7 +56,6 @@ export async function editRequest(payload: Payload) {
   }
 }
 
-
 export async function getRequests(
   filters: RequestFilters,
 ): Promise<{ success: boolean; data: RequestType[]; err: unknown }> {
@@ -59,12 +67,19 @@ export async function getRequests(
         ...(filters.dueDate && { dueDate: filters.dueDate }),
         ...(filters.owner && { ownerId: filters.owner }),
         ...(filters.search && { search: filters.search }),
-        ...(filters.next_due && {nextDue: filters.next_due})
+        ...(filters.next_due && { nextDue: filters.next_due }),
       },
     });
     return { success: true, data: resp.data, err: null };
   } catch (err) {
-    return { success: false, data: [], err: err };
+    // return { success: false, data: [], err: err };
+    if (axios.isAxiosError(err)) {
+      throw new Error(
+        err.response?.data?.message ?? "Failed to get requests"
+      );
+    }
+
+    throw new Error("Failed to get requests");
   }
 }
 
@@ -91,25 +106,40 @@ export async function assignOwner(payload: OwnerPayload) {
     );
     return { success: true, data: resp.data, err: null };
   } catch (err) {
-    return { success: false, data: null, err: err };
+    // return { success: false, data: null, err: err };
+    if (axios.isAxiosError(err)) {
+      throw new Error(
+        err.response?.data?.message ?? "Failed to assing owner"
+      );
+    }
+
+    throw new Error("Failed to assign owner");
   }
 }
 
 type StatusPayload = {
   requestId: string;
   newStatus: string;
+  rejectionReason?: string;
 };
 export async function changeStatus(payload: StatusPayload) {
   try {
     const resp = await axiosClient.patch(
       `/api/requests/${payload.requestId}/status`,
       {
+        rejectionReason: payload.rejectionReason,
         newStatus: payload.newStatus,
       },
     );
     return { success: true, data: resp.data, err: null };
   } catch (err) {
-    return { success: false, data: null, err: err };
+    if (axios.isAxiosError(err)) {
+      throw new Error(
+        err.response?.data?.message ?? "Failed to update status"
+      );
+    }
+
+    throw new Error("Failed to update status");
   }
 }
 
@@ -127,6 +157,13 @@ export async function addNote(payload: NotePayload) {
     );
     return { success: true, data: resp.data, err: null };
   } catch (err) {
-    return { success: false, data: null, err: err };
+    // return { success: false, data: null, err: err };
+    if (axios.isAxiosError(err)) {
+      throw new Error(
+        err.response?.data?.message ?? "Failed to add a note "
+      );
+    }
+
+    throw new Error("Failed to add a note");
   }
 }

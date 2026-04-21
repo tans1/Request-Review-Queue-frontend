@@ -19,6 +19,8 @@ import {
 } from "../features/requests/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import NewRequest from "../components/forms/new-request";
+import { Field } from "../components/ui/field";
+import { toast } from "sonner";
 
 type RequestStatus =
   | "NEW"
@@ -57,6 +59,7 @@ export default function RequestDetailsPage() {
   const [newNote, setNewNote] = useState("");
   const [selectedOwnerId, setSelectedOwnerId] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const requestQuery = useQuery({
     queryKey: ["request"],
@@ -68,6 +71,13 @@ export default function RequestDetailsPage() {
     mutationFn: assignOwner,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["request"] });
+      setSelectedOwnerId("");
+    },
+    onError: (error) => {
+      console.log("not able to assing owner to a request:- ", error);
+      toast.error( error.message ?? "Error occured", {
+        position: "top-right",
+      });
     },
   });
 
@@ -75,6 +85,14 @@ export default function RequestDetailsPage() {
     mutationFn: changeStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["request"] });
+      setSelectedStatus("");
+      setRejectionReason("")
+    },
+    onError: (error) => {
+      console.log("not able to change a request status:- ", error);
+      toast.error( error.message ?? "Error occured", {
+        position: "top-right",
+      });
     },
   });
 
@@ -82,6 +100,13 @@ export default function RequestDetailsPage() {
     mutationFn: addNote,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["request"] });
+      setNewNote("");
+    },
+    onError: (error) => {
+      console.log("not able to create a request note:- ", error);
+      toast.error( error.message ?? "Error occured", {
+        position: "top-right",
+      });
     },
   });
 
@@ -96,6 +121,7 @@ export default function RequestDetailsPage() {
     changeStatusMutation.mutate({
       requestId,
       newStatus: selectedStatus,
+      rejectionReason,
     });
   };
 
@@ -149,7 +175,7 @@ export default function RequestDetailsPage() {
               existingRequest={{
                 id: requestQuery.data?.data?.id,
                 title: requestQuery.data?.data?.title,
-                owner: requestQuery.data?.data?.owner.id,
+                owner: requestQuery.data?.data?.owner?.id,
                 dueDate: requestQuery.data?.data?.dueDate,
                 status: requestQuery.data?.data?.status,
                 priority: requestQuery.data?.data?.priority,
@@ -169,7 +195,7 @@ export default function RequestDetailsPage() {
                   <div>
                     <div className="text-slate-500">Owner</div>
                     <div className="font-medium text-slate-800">
-                      {requestQuery.data?.data?.owner.name}
+                      {requestQuery.data?.data?.owner?.name}
                     </div>
                   </div>
                   <div>
@@ -201,7 +227,8 @@ export default function RequestDetailsPage() {
                 </div>
 
                 {requestQuery.data?.data?.rejectionReason && (
-                  <div className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
+                  <div className="mt-4 rounded-lg bg-red-100 p-3 text-sm text-slate-700 text-left">
+                    <span className="font-medium">Rejection reason :</span>{" "}
                     {requestQuery.data?.data?.rejectionReason}
                   </div>
                 )}
@@ -260,6 +287,9 @@ export default function RequestDetailsPage() {
                     onChange={(event) =>
                       setSelectedOwnerId(event.target.value)
                     }>
+                    <NativeSelectOption key="1" value="">
+                      Select owner
+                    </NativeSelectOption>
                     {ownersQuery.data?.data.map((owner) => (
                       <NativeSelectOption key={owner.id} value={owner.id}>
                         {owner.name}
@@ -269,7 +299,8 @@ export default function RequestDetailsPage() {
                   <Button
                     type="button"
                     className="w-full"
-                    onClick={handleAssign}>
+                    onClick={handleAssign}
+                    disabled={!selectedOwnerId}>
                     Save assignment
                   </Button>
                 </div>
@@ -283,16 +314,40 @@ export default function RequestDetailsPage() {
                     onChange={(event) =>
                       setSelectedStatus(event.target.value as RequestStatus)
                     }>
+                    <NativeSelectOption key="1" value="">
+                      Select status
+                    </NativeSelectOption>
                     {STATUS_OPTIONS.map((option) => (
                       <NativeSelectOption key={option} value={option}>
                         {option}
                       </NativeSelectOption>
                     ))}
                   </NativeSelect>
+                  {selectedStatus == "REJECTED" && (
+                    <Field className="sm:col-span-2 mb-4">
+                      <Label htmlFor="request-rejectionReason">
+                        Rejection Reason
+                      </Label>
+                      <textarea
+                        id="request-rejectionReason"
+                        name="rejectionReason"
+                        value={rejectionReason}
+                        onChange={(event) =>
+                          setRejectionReason(event.target.value)
+                        }
+                        placeholder="Reason..."
+                        className="min-h-28 w-full rounded-lg px-2.5 py-2 text-sm outline-none border"
+                      />
+                    </Field>
+                  )}
                   <Button
                     type="button"
                     className="w-full"
-                    onClick={handleStatusUpdate}>
+                    onClick={handleStatusUpdate}
+                    disabled={
+                      (selectedStatus == "REJECTED" && !rejectionReason) ||
+                      !selectedStatus
+                    }>
                     Save status
                   </Button>
                 </div>
@@ -308,7 +363,8 @@ export default function RequestDetailsPage() {
                   <Button
                     type="button"
                     className="w-full"
-                    onClick={handleAddNote}>
+                    onClick={handleAddNote}
+                    disabled={!newNote}>
                     Add note
                   </Button>
                 </div>

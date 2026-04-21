@@ -42,7 +42,7 @@ export default function LoginPage() {
           navigate("/dashboard");
         }
       } catch (err) {
-        toast.error(err, { position: "top-right" });
+        toast.error(err instanceof Error ? err.message : "Error occured" , { position: "top-right" });
       }
     }
     setLoading(false);

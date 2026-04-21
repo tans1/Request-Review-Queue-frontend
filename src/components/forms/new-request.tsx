@@ -46,7 +46,14 @@ type FieldErrors = {
   status?: string;
   priority?: string;
 };
-type FieldName = "title" | "note" | "owner" | "dueDate" | "status" | "priority";
+type FieldName =
+  | "title"
+  | "note"
+  | "owner"
+  | "dueDate"
+  | "status"
+  | "priority"
+  | "rejectionReason";
 
 function formatDate(date: Date) {
   const year = date.getFullYear();
@@ -55,15 +62,6 @@ function formatDate(date: Date) {
 
   return `${year}-${month}-${day}`;
 }
-
-const INITIAL_FORM_DATA = {
-  title: "",
-  note: "",
-  owner: "",
-  dueDate: "",
-  status: "NEW",
-  priority: "",
-};
 
 type ExistingRequest = {
   id: string;
@@ -88,6 +86,7 @@ export default function NewRequest({ label, title, existingRequest }: Payload) {
     return {
       title: existingRequest?.title ?? "",
       note: "",
+      rejectionReason: "",
       owner: existingRequest?.owner ?? "",
       dueDate: existingRequest?.dueDate ?? "",
       status: existingRequest?.status ?? "NEW",
@@ -111,7 +110,7 @@ export default function NewRequest({ label, title, existingRequest }: Payload) {
     },
     onError: (error) => {
       console.log("not able to create a request:- ", error);
-      toast.error("Not able to create", {
+      toast.error( error.message ?? "Not able to create", {
         position: "top-right",
       });
     },
@@ -284,7 +283,6 @@ export default function NewRequest({ label, title, existingRequest }: Payload) {
                 onChange={(event) =>
                   handleChange("status", event.target.value)
                 }>
-                {/* <NativeSelectOption value="">Select Status</NativeSelectOption> */}
                 {RequestStatusValues.map((status) => (
                   <NativeSelectOption key={status} value={status}>
                     {status}
@@ -306,9 +304,6 @@ export default function NewRequest({ label, title, existingRequest }: Payload) {
                 onChange={(event) =>
                   handleChange("priority", event.target.value)
                 }>
-                {/* <NativeSelectOption value="">
-                  Select Priority
-                </NativeSelectOption> */}
                 {RequestPriorityValues.map((priority) => (
                   <NativeSelectOption key={priority} value={priority}>
                     {priority}
@@ -318,18 +313,37 @@ export default function NewRequest({ label, title, existingRequest }: Payload) {
               <FieldError errors={[{ message: fieldErrors.priority }]} />
             </Field>
 
-            <Field className="sm:col-span-2 mb-4">
-              <Label htmlFor="request-note">Note</Label>
-              <textarea
-                id="request-note"
-                name="note"
-                value={formData.note}
-                onChange={(event) => handleChange("note", event.target.value)}
-                placeholder="note..."
-                className="min-h-28 w-full rounded-lg px-2.5 py-2 text-sm outline-none border"
-              />
-              <FieldError errors={[{ message: fieldErrors.note }]} />
-            </Field>
+            {formData.status == "REJECTED" ? (
+              <Field className="sm:col-span-2 mb-4">
+                <Label htmlFor="request-rejectionReason">
+                  Rejection Reason
+                </Label>
+                <textarea
+                  id="request-rejectionReason"
+                  name="rejectionReason"
+                  value={formData.rejectionReason}
+                  onChange={(event) =>
+                    handleChange("rejectionReason", event.target.value)
+                  }
+                  placeholder="Reason..."
+                  className="min-h-28 w-full rounded-lg px-2.5 py-2 text-sm outline-none border"
+                />
+                <FieldError errors={[{ message: fieldErrors.note }]} />
+              </Field>
+            ) : (
+              <Field className="sm:col-span-2 mb-4">
+                <Label htmlFor="request-note">Note</Label>
+                <textarea
+                  id="request-note"
+                  name="note"
+                  value={formData.note}
+                  onChange={(event) => handleChange("note", event.target.value)}
+                  placeholder="note..."
+                  className="min-h-28 w-full rounded-lg px-2.5 py-2 text-sm outline-none border"
+                />
+                <FieldError errors={[{ message: fieldErrors.note }]} />
+              </Field>
+            )}
           </FieldGroup>
 
           <DialogFooter>
