@@ -119,9 +119,9 @@ export default function RegistrationForm({
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Loading..." : "Create account"}
             </Button>
-            <Button type="button" variant="outline" className="w-full">
+            {/* <Button type="button" variant="outline" className="w-full">
               Continue with Google
-            </Button>
+            </Button> */}
           </div>
         </form>
       </CardContent>

@@ -72,9 +72,9 @@ export default function LoginForm({
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Loading..." : "Login"}
             </Button>
-            <Button type="button" variant="outline" className="w-full">
+            {/* <Button type="button" variant="outline" className="w-full">
               Login with Google
-            </Button>
+            </Button> */}
           </div>
         </form>
       </CardContent>
