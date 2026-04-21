@@ -32,7 +32,11 @@ import { useState } from "react";
 import * as z from "zod";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createRequest, getOwners } from "../../features/requests/api";
+import {
+  createRequest,
+  editRequest,
+  getOwners,
+} from "../../features/requests/api";
 
 type FieldErrors = {
   title?: string;
@@ -57,23 +61,51 @@ const INITIAL_FORM_DATA = {
   note: "",
   owner: "",
   dueDate: "",
-  status: "",
+  status: "NEW",
   priority: "",
 };
 
-export default function NewRequest() {
+type ExistingRequest = {
+  id: string;
+  title: string;
+  owner: string;
+  dueDate: string;
+  status: string;
+  priority: string;
+};
+
+type Payload = {
+  label?: string;
+  title?: string;
+  existingRequest?: ExistingRequest;
+};
+
+export default function NewRequest({ label, title, existingRequest }: Payload) {
+  // console.log(existingRequest)
   const [open, setOpen] = useState(false);
   const [isDueDatePickerOpen, setIsDueDatePickerOpen] = useState(false);
-  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+  function getFormData(existingRequest?: ExistingRequest) {
+    return {
+      title: existingRequest?.title ?? "",
+      note: "",
+      owner: existingRequest?.owner ?? "",
+      dueDate: existingRequest?.dueDate ?? "",
+      status: existingRequest?.status ?? "NEW",
+      priority: existingRequest?.priority ?? "LOW",
+    };
+  }
+
+  const [formData, setFormData] = useState(() => getFormData(existingRequest));
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const queryClient = useQueryClient();
   const query = useQuery({ queryKey: ["owners"], queryFn: getOwners });
   const mutation = useMutation({
-    mutationFn: createRequest,
+    mutationFn: existingRequest ? editRequest : createRequest,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["requests"] });
-      toast.info("Request created", {
+      queryClient.invalidateQueries({ queryKey: ["request"] });
+      toast.info(existingRequest ? "Request Updated" : "Request created", {
         position: "top-right",
       });
     },
@@ -97,6 +129,15 @@ export default function NewRequest() {
     }));
   };
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+
+    if (nextOpen) {
+      setFormData(getFormData(existingRequest));
+      setFieldErrors({});
+    }
+  };
+
   const handleSubmit = async (event: React.SubmitEvent) => {
     event.preventDefault();
 
@@ -108,23 +149,27 @@ export default function NewRequest() {
         title: tree.properties?.title?.errors.at(0),
         note: tree.properties?.note?.errors.at(0),
         owner: tree.properties?.owner?.errors.at(0),
-        dueDate: tree.properties?.dueDate?.errors.at(0),
         status: tree.properties?.status?.errors.at(0),
-        priority: tree.properties?.priority?.errors.at(0),
       });
       return;
     }
 
     const payload = {
       ...validation.data,
+      ...(formData.dueDate
+        ? { dueDate: new Date(formData.dueDate).toISOString() }
+        : {}),
+      ...(formData.priority ? { priority: formData.priority } : {}),
       ownerId: validation.data.owner,
-      dueDate: new Date(validation.data.dueDate).toISOString(),
     };
 
     try {
-      mutation.mutate({ ...payload });
+      mutation.mutate({
+        ...payload,
+        ...(existingRequest ? { id: existingRequest.id } : {}),
+      });
       setFieldErrors({});
-      setFormData(INITIAL_FORM_DATA);
+      // setFormData(() => getFormData(existingRequest));
     } catch (err) {
       console.log(err);
     } finally {
@@ -134,21 +179,23 @@ export default function NewRequest() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button type="button" className="cursor-pointer bg-blue-500 text-white">
-          New request
+          {label ? label : "New request"}
         </Button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-2xl">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>New request</DialogTitle>
+            <DialogTitle>{title ? title : "New request"}</DialogTitle>
           </DialogHeader>
           <FieldGroup className="grid gap-4 sm:grid-cols-2">
             <Field className="sm:col-span-2">
-              <Label htmlFor="request-title">Title</Label>
+              <Label htmlFor="request-title">
+                Title <span className="text-red-500">*</span>{" "}
+              </Label>
               <Input
                 id="request-title"
                 name="title"
@@ -226,7 +273,9 @@ export default function NewRequest() {
             </Field>
 
             <Field>
-              <Label htmlFor="request-status">Status</Label>
+              <Label htmlFor="request-status">
+                Status <span className="text-red-500">*</span>
+              </Label>
               <NativeSelect
                 id="request-status"
                 name="status"
@@ -235,7 +284,7 @@ export default function NewRequest() {
                 onChange={(event) =>
                   handleChange("status", event.target.value)
                 }>
-                <NativeSelectOption value="">Select Status</NativeSelectOption>
+                {/* <NativeSelectOption value="">Select Status</NativeSelectOption> */}
                 {RequestStatusValues.map((status) => (
                   <NativeSelectOption key={status} value={status}>
                     {status}
@@ -246,7 +295,9 @@ export default function NewRequest() {
             </Field>
 
             <Field>
-              <Label htmlFor="request-priority">Priority</Label>
+              <Label htmlFor="request-priority">
+                Priority <span className="text-red-500">*</span>
+              </Label>
               <NativeSelect
                 id="request-priority"
                 name="priority"
@@ -255,9 +306,9 @@ export default function NewRequest() {
                 onChange={(event) =>
                   handleChange("priority", event.target.value)
                 }>
-                <NativeSelectOption value="">
+                {/* <NativeSelectOption value="">
                   Select Priority
-                </NativeSelectOption>
+                </NativeSelectOption> */}
                 {RequestPriorityValues.map((priority) => (
                   <NativeSelectOption key={priority} value={priority}>
                     {priority}
@@ -267,7 +318,7 @@ export default function NewRequest() {
               <FieldError errors={[{ message: fieldErrors.priority }]} />
             </Field>
 
-            <Field className="sm:col-span-2">
+            <Field className="sm:col-span-2 mb-4">
               <Label htmlFor="request-note">Note</Label>
               <textarea
                 id="request-note"

@@ -18,6 +18,7 @@ import {
   getRequestById,
 } from "../features/requests/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import NewRequest from "../components/forms/new-request";
 
 type RequestStatus =
   | "NEW"
@@ -142,6 +143,18 @@ export default function RequestDetailsPage() {
               )}>
               {requestQuery.data?.data?.status}
             </span>
+            <NewRequest
+              label="Edit"
+              title="Edit Request"
+              existingRequest={{
+                id: requestQuery.data?.data?.id,
+                title: requestQuery.data?.data?.title,
+                owner: requestQuery.data?.data?.owner.id,
+                dueDate: requestQuery.data?.data?.dueDate,
+                status: requestQuery.data?.data?.status,
+                priority: requestQuery.data?.data?.priority,
+              }}
+            />
           </div>
         </div>
 
@@ -178,9 +191,11 @@ export default function RequestDetailsPage() {
                   <div>
                     <div className="text-slate-500">Due date</div>
                     <div className="font-medium text-slate-800">
-                      {new Date(
-                        requestQuery.data?.data?.dueDate,
-                      ).toDateString()}
+                      {requestQuery.data?.data?.dueDate
+                        ? new Date(
+                            requestQuery.data?.data?.dueDate,
+                          ).toDateString()
+                        : "Not set"}
                     </div>
                   </div>
                 </div>

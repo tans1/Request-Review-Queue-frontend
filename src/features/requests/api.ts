@@ -12,9 +12,10 @@ export async function getOwners() {
 }
 
 type Payload = {
+  id?: string;
   title: string;
-  dueDate: string;
-  status?: string;
+  status: string;
+  dueDate?: string;
   priority?: string;
   ownerId?: string;
   note?: string;
@@ -32,6 +33,20 @@ export async function createRequest(payload: Payload) {
     return { success: false, data: null, err: err };
   }
 }
+
+export async function editRequest(payload: Payload) {
+  try {
+    const resp = await axiosClient.patch(`/api/requests/${payload.id}`, {
+      ...payload,
+    });
+    console.log("the response is", resp);
+    return { success: true, data: resp.data, err: null };
+  } catch (err) {
+    console.log("the error is", err);
+    return { success: false, data: null, err: err };
+  }
+}
+
 
 export async function getRequests(
   filters: RequestFilters,
