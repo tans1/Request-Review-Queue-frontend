@@ -8,7 +8,8 @@ type Props = {
 export default function ProtectedRoute({ children }: Props) {
   const { data, isPending, error } = authClient.useSession();
 
-  if (isPending) {
+
+  if (data === undefined || data == null || isPending) {
     return <div>Loading...</div>;
   }
 
@@ -16,7 +17,9 @@ export default function ProtectedRoute({ children }: Props) {
     return <div>Failed to load session</div>;
   }
 
-  if (!data?.user) {
+  console.log(data)
+
+  if (!data.user) {
     return <Navigate to="/auth/login" replace />;
   }
 

@@ -64,7 +64,7 @@ export default function RequestTableRow({
         </span>
       </TableCell>
       <TableCell className="text-slate-600">
-        {new Date(request.dueDate).toDateString()}
+        {request.dueDate && new Date(request.dueDate).toDateString()}
       </TableCell>
     </TableRow>
   );

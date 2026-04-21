@@ -42,10 +42,13 @@ export default function LoginPage() {
           navigate("/dashboard");
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Error occured" , { position: "top-right" });
+        toast.error(err instanceof Error ? err.message : "Error occured", {
+          position: "top-right",
+        });
+      } finally {
+        setLoading(false);
       }
     }
-    setLoading(false);
   };
 
   return (

@@ -110,7 +110,7 @@ export default function NewRequest({ label, title, existingRequest }: Payload) {
     },
     onError: (error) => {
       console.log("not able to create a request:- ", error);
-      toast.error( error.message ?? "Not able to create", {
+      toast.error(error.message ?? "Not able to create", {
         position: "top-right",
       });
     },
@@ -160,6 +160,9 @@ export default function NewRequest({ label, title, existingRequest }: Payload) {
         : {}),
       ...(formData.priority ? { priority: formData.priority } : {}),
       ownerId: validation.data.owner,
+      ...(formData.rejectionReason
+        ? { rejectionReason: formData.rejectionReason }
+        : {}),
     };
 
     try {

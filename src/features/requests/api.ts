@@ -20,11 +20,12 @@ type Payload = {
   priority?: string;
   ownerId?: string;
   note?: string;
-  rejectionReason?: "";
+  rejectionReason?: string;
 };
 
 export async function createRequest(payload: Payload) {
   try {
+    console.log("the payload is ", payload)
     const resp = await axiosClient.post("/api/requests", {
       ...payload,
     });
