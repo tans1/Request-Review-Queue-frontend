@@ -1,8 +1,6 @@
 import Filters, { type RequestFilters } from "../components/filters";
 import Navbar from "../components/navbar";
 import RequestTableRow, { type RequestListItem } from "../components/table-row";
-import { Button } from "@/components/ui/button";
-import { useMemo, useState } from "react";
 
 import {
   Table,
@@ -11,10 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import NewRequest from "../components/forms/new-request";
 
 export default function DashboardPage() {
-  const [currentPage, setCurrentPage] = useState(1);
-
   const handleFilterChange = (filters: RequestFilters) => {
     console.log(filters);
   };
@@ -136,20 +133,12 @@ export default function DashboardPage() {
     },
   ];
 
-  const itemsPerPage = 6;
-  const totalPages = Math.ceil(demo.length / itemsPerPage);
-
-  const paginatedRequests = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return demo.slice(start, start + itemsPerPage);
-  }, [currentPage, demo]);
-
-  const startItemIndex = (currentPage - 1) * itemsPerPage + 1;
-  const endItemIndex = Math.min(currentPage * itemsPerPage, demo.length);
-
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
+      <div className="w-full flex flex-row-reverse mt-5">
+        <NewRequest />
+      </div>
       <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-5">
         <div className="text-3xl font-medium">Requests</div>
         <Filters onFiltersChange={handleFilterChange} />
@@ -170,62 +159,15 @@ export default function DashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedRequests.map((request, index) => (
+              {demo.map((request, index) => (
                 <RequestTableRow
                   key={request.id}
                   request={request}
-                  index={(currentPage - 1) * itemsPerPage + index}
+                  index={index}
                 />
               ))}
             </TableBody>
           </Table>
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm">
-          <div className="text-slate-600">
-            Showing {startItemIndex}-{endItemIndex} of {demo.length} requests
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((page) => Math.max(page - 1, 1))}>
-              Previous
-            </Button>
-
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, pageIndex) => {
-                const page = pageIndex + 1;
-                const isActive = currentPage === page;
-
-                return (
-                  <Button
-                    key={page}
-                    type="button"
-                    variant={isActive ? "default" : "outline"}
-                    size="sm"
-                    className="min-w-8"
-                    onClick={() => setCurrentPage(page)}>
-                    {page}
-                  </Button>
-                );
-              })}
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={currentPage === totalPages}
-              onClick={() =>
-                setCurrentPage((page) => Math.min(page + 1, totalPages))
-              }>
-              Next
-            </Button>
-          </div>
         </div>
       </div>
     </div>

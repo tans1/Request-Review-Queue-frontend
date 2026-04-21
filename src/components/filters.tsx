@@ -11,6 +11,7 @@ export type RequestFilters = {
   status: string;
   priority: string;
   submittedDate: string;
+  owner: string;
 };
 
 type FiltersProps = {
@@ -21,9 +22,10 @@ const INITIAL_FILTERS: RequestFilters = {
   status: "",
   priority: "",
   submittedDate: "",
+  owner: "",
 };
 
-type FilterKey = "status" | "priority" | "submittedDate"
+type FilterKey = "status" | "priority" | "submittedDate" | "owner";
 
 function formatDate(date: Date) {
   const year = date.getFullYear();
@@ -79,10 +81,6 @@ export default function Filters({ onFiltersChange }: FiltersProps) {
     };
 
     window.addEventListener("mousedown", handleOutsideClick);
-
-    return () => {
-      window.removeEventListener("mousedown", handleOutsideClick);
-    };
   }, []);
 
   return (
@@ -109,6 +107,16 @@ export default function Filters({ onFiltersChange }: FiltersProps) {
         <NativeSelectOption value="LOW_PRIORITY">Low</NativeSelectOption>
       </NativeSelect>
 
+      <NativeSelect
+        value={filters.priority}
+        onChange={(event) => handleFilterChange("owner", event.target.value)}
+        className="w-36 rounded-lg bg-white shadow-sm ">
+        <NativeSelectOption value="">All owners</NativeSelectOption>
+        {[].map((owner) => (
+          <NativeSelectOption value={owner}>{owner}</NativeSelectOption>
+        ))}
+      </NativeSelect>
+
       <div className="relative" ref={datePickerRef}>
         <Button
           type="button"
@@ -116,7 +124,7 @@ export default function Filters({ onFiltersChange }: FiltersProps) {
           className="w-36 justify-start bg-white font-normal shadow-sm"
           onClick={() => setIsCalendarOpen(!isCalendarOpen)}>
           <CalendarIcon className="size-4" />
-          {filters.submittedDate || "Select date"}
+          {filters.submittedDate || "Due date"}
         </Button>
 
         {isCalendarOpen && (

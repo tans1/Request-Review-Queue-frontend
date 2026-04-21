@@ -16,13 +16,15 @@ export const verifyEmail = async (token: string) => {
   });
 };
 
-
-
 // export const fetchUser = async () => {
 //   return await authClient.useSession()
 // }
-// type LoginFormData = {
-//   email: string;
-//   password: string;
-// };
-// export const loginUser = (payload: LoginFormData) => {};
+type LoginFormData = {
+  email: string;
+  password: string;
+};
+export const loginUser = async (payload: LoginFormData) => {
+  return await authClient.signIn.email({
+    ...payload,
+  });
+};

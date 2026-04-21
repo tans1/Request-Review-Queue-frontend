@@ -2,7 +2,7 @@ import { CircleUserRound, Moon } from "lucide-react";
 
 export default function Navbar() {
   return (
-    <header className="w-full  shadow-xs px-4 py-6">
+    <header className=" sticky top-0 z-50 w-full bg-white shadow-xs px-4 py-6 ">
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1 max-w-xl">
           <input
@@ -13,15 +13,11 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="text-sm ">
+          <button type="button" className="text-sm ">
             <Moon />
           </button>
 
-          <button
-            type="button"
-            className="">
+          <button type="button" className="">
             <CircleUserRound />
           </button>
         </div>
