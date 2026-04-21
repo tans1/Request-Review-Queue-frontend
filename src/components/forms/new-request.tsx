@@ -119,7 +119,6 @@ export default function NewRequest() {
       ...validation.data,
       ownerId: validation.data.owner,
       dueDate: new Date(validation.data.dueDate).toISOString(),
-      submittedAt: new Date().toISOString(),
     };
 
     try {

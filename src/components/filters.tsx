@@ -8,6 +8,7 @@ import { CalendarIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getOwners } from "../features/requests/api";
+import { Toggle } from "./ui/toggle";
 
 export type RequestFilters = {
   status: string;
@@ -15,6 +16,7 @@ export type RequestFilters = {
   dueDate: string;
   owner: string;
   search: string;
+  next_due: boolean;
 };
 
 type FiltersProps = {
@@ -27,6 +29,7 @@ const INITIAL_FILTERS: RequestFilters = {
   dueDate: "",
   owner: "",
   search: "",
+  next_due: false,
 };
 
 type FilterKey = "status" | "priority" | "dueDate" | "owner";
@@ -70,6 +73,14 @@ export default function Filters({ onFiltersChange }: FiltersProps) {
     });
 
     setIsCalendarOpen(false);
+  };
+
+  const handleNextDue = () => {
+    updateFilters({
+      ...filters,
+      next_due: !filters.next_due,
+      dueDate: ""
+    });
   };
 
   const handleClear = () => {
@@ -124,12 +135,22 @@ export default function Filters({ onFiltersChange }: FiltersProps) {
         ))}
       </NativeSelect>
 
+      <div>
+        <Toggle
+          className="bg-white shadow-sm hover:bg-white"
+          onClick={handleNextDue}>
+          Next Due
+        </Toggle>
+      </div>
+
       <div className="relative" ref={datePickerRef}>
         <Button
           type="button"
           variant="ghost"
           className="w-36 justify-start bg-white font-normal shadow-sm"
-          onClick={() => setIsCalendarOpen(!isCalendarOpen)}>
+          onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+          disabled={filters.next_due}
+          >
           <CalendarIcon className="size-4" />
           {filters.dueDate || "Due date"}
         </Button>

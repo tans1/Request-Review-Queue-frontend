@@ -21,6 +21,7 @@ export default function DashboardPage() {
     dueDate: "",
     owner: "",
     search: "",
+    next_due: false,
   });
 
   const query = useQuery({
@@ -43,11 +44,12 @@ export default function DashboardPage() {
           }));
         }}
       />
-      <div className="w-full flex flex-row-reverse mt-5">
-        <NewRequest />
-      </div>
       <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-5">
         <div className="text-3xl font-medium">Requests</div>
+        <NewRequest />
+      </div>
+
+      <div className=" flex justify-start my-5 px-5">
         <Filters onFiltersChange={handleFilterChange} />
       </div>
 

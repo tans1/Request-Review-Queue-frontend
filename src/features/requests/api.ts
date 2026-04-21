@@ -44,6 +44,7 @@ export async function getRequests(
         ...(filters.dueDate && { dueDate: filters.dueDate }),
         ...(filters.owner && { ownerId: filters.owner }),
         ...(filters.search && { search: filters.search }),
+        ...(filters.next_due && {nextDue: filters.next_due})
       },
     });
     return { success: true, data: resp.data, err: null };
