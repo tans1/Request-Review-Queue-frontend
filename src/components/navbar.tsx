@@ -1,4 +1,13 @@
 import { CircleUserRound, Moon } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { authClient } from "../lib/auth-client";
+import { useNavigate } from "react-router-dom";
 
 type Payload = {
   searchValue: string;
@@ -8,6 +17,16 @@ export default function Navbar({
   searchValue,
   handleSearchValueChange,
 }: Payload) {
+  const navigate = useNavigate();
+  const handleLogout = async () => {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          navigate("/", { replace: true });
+        },
+      },
+    });
+  };
   return (
     <header className=" sticky top-0 z-50 w-full bg-white shadow-xs px-4 py-6 ">
       <div className="flex items-center justify-between gap-4">
@@ -26,9 +45,22 @@ export default function Navbar({
             <Moon />
           </button>
 
-          <button type="button" className="">
-            <CircleUserRound />
-          </button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button type="button" className="">
+                <CircleUserRound />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="max-w-32">
+              <PopoverHeader>
+                <PopoverTitle>
+                  <button className="cursor-pointer" onClick={handleLogout}>
+                    Logout
+                  </button>
+                </PopoverTitle>
+              </PopoverHeader>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
     </header>

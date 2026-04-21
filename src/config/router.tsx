@@ -8,6 +8,7 @@ import VerifyEmailPage from "../pages/auth/verify-email";
 import ConfirmationPage from "../pages/auth/confirmation";
 import ProtectedRoute from "../pages/protected";
 import RequestDetailsPage from "../pages/details";
+import NotFoundPage from "../pages/404";
 
 export const router = createBrowserRouter([
   {
@@ -52,4 +53,8 @@ export const router = createBrowserRouter([
     path: "/api/auth/verify-email",
     element: <VerifyEmailPage />,
   },
+  {
+    path: "*",
+    element: <NotFoundPage />
+  }
 ]);
