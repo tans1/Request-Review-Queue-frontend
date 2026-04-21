@@ -25,31 +25,24 @@ import {
   NewRequestSchema,
   RequestPriorityValues,
   RequestStatusValues,
-  type NewRequestInput,
 } from "@/features/requests/request.schema";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import * as z from "zod";
 import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createRequest, getOwners } from "../../features/requests/api";
 
-type FieldErrors = Partial<Record<keyof NewRequestInput, string>>;
-type FieldName = keyof NewRequestInput;
-
-const OWNER_OPTIONS = [
-  { id: "1", name: "Kebede" },
-  { id: "5", name: "Lidiya" },
-  { id: "6", name: "Meron" },
-  { id: "7", name: "Yonatan" },
-  { id: "9", name: "Kidus" },
-  { id: "11", name: "Dawit" },
-  { id: "13", name: "Benyam" },
-  { id: "15", name: "Nahom" },
-  { id: "17", name: "Netsanet" },
-  { id: "19", name: "Bethel" },
-  { id: "21", name: "Henok" },
-  { id: "23", name: "Ruth" },
-] as const;
+type FieldErrors = {
+  title?: string;
+  note?: string;
+  owner?: string;
+  dueDate?: string;
+  status?: string;
+  priority?: string;
+};
+type FieldName = "title" | "note" | "owner" | "dueDate" | "status" | "priority";
 
 function formatDate(date: Date) {
   const year = date.getFullYear();
@@ -59,21 +52,38 @@ function formatDate(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-const INITIAL_FORM_DATA: NewRequestInput = {
+const INITIAL_FORM_DATA = {
   title: "",
   note: "",
   owner: "",
   dueDate: "",
-  status: "new",
-  priority: "medium",
+  status: "",
+  priority: "",
 };
 
 export default function NewRequest() {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [isDueDatePickerOpen, setIsDueDatePickerOpen] = useState(false);
-  const [formData, setFormData] = useState<NewRequestInput>(INITIAL_FORM_DATA);
+  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  const queryClient = useQueryClient();
+  const query = useQuery({ queryKey: ["owners"], queryFn: getOwners });
+  const mutation = useMutation({
+    mutationFn: createRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["requests"] });
+      toast.info("Request created", {
+        position: "top-right",
+      });
+    },
+    onError: (error) => {
+      console.log("not able to create a request:- ", error);
+      toast.error("Not able to create", {
+        position: "top-right",
+      });
+    },
+  });
 
   const handleChange = (field: FieldName, value: string) => {
     setFieldErrors((current) => ({
@@ -89,7 +99,6 @@ export default function NewRequest() {
 
   const handleSubmit = async (event: React.SubmitEvent) => {
     event.preventDefault();
-    setLoading(true);
 
     const validation = NewRequestSchema.safeParse(formData);
 
@@ -103,39 +112,38 @@ export default function NewRequest() {
         status: tree.properties?.status?.errors.at(0),
         priority: tree.properties?.priority?.errors.at(0),
       });
-      setLoading(false);
       return;
     }
 
-    const backendPayload = {
+    const payload = {
       ...validation.data,
+      ownerId: validation.data.owner,
+      dueDate: new Date(validation.data.dueDate).toISOString(),
       submittedAt: new Date().toISOString(),
     };
 
-    console.log("New request payload ready", backendPayload);
-    toast.success("Request is ready to be sent to backend.", {
-      position: "top-right",
-    });
-
-    setFieldErrors({});
-    setFormData(INITIAL_FORM_DATA);
-    setIsDueDatePickerOpen(false);
-    setLoading(false);
-    setOpen(false);
+    try {
+      mutation.mutate({ ...payload });
+      setFieldErrors({});
+      setFormData(INITIAL_FORM_DATA);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsDueDatePickerOpen(false);
+      setOpen(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <form onSubmit={handleSubmit}>
-        <DialogTrigger asChild>
-          <Button
-            type="button"
-            className="cursor-pointer bg-blue-500 text-white">
-            New request
-          </Button>
-        </DialogTrigger>
+      <DialogTrigger asChild>
+        <Button type="button" className="cursor-pointer bg-blue-500 text-white">
+          New request
+        </Button>
+      </DialogTrigger>
 
-        <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl">
+        <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>New request</DialogTitle>
           </DialogHeader>
@@ -160,9 +168,9 @@ export default function NewRequest() {
                 value={formData.owner}
                 onChange={(event) => handleChange("owner", event.target.value)}>
                 <NativeSelectOption value="">Select owner</NativeSelectOption>
-                {OWNER_OPTIONS.map((owner) => (
-                  <NativeSelectOption key={owner.id} value={owner.id}>
-                    {owner.name}
+                {query.data?.data.map((owner) => (
+                  <NativeSelectOption key={owner?.id} value={owner?.id}>
+                    {owner?.name}
                   </NativeSelectOption>
                 ))}
               </NativeSelect>
@@ -228,6 +236,7 @@ export default function NewRequest() {
                 onChange={(event) =>
                   handleChange("status", event.target.value)
                 }>
+                <NativeSelectOption value="">Select Status</NativeSelectOption>
                 {RequestStatusValues.map((status) => (
                   <NativeSelectOption key={status} value={status}>
                     {status}
@@ -247,6 +256,9 @@ export default function NewRequest() {
                 onChange={(event) =>
                   handleChange("priority", event.target.value)
                 }>
+                <NativeSelectOption value="">
+                  Select Priority
+                </NativeSelectOption>
                 {RequestPriorityValues.map((priority) => (
                   <NativeSelectOption key={priority} value={priority}>
                     {priority}
@@ -274,12 +286,12 @@ export default function NewRequest() {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Validating..." : "Create request"}
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? "Creating..." : "Create request"}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </form>
+        </form>
+      </DialogContent>
     </Dialog>
   );
 }
